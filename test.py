@@ -4,6 +4,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QMessageBox, QDesktopWidget, QFileDialog, QApplication, QMainWindow, QTabWidget, \
     QListWidget, QHBoxLayout, QWidget, QTextEdit, QVBoxLayout, QLabel
 
+import newWindows
+
 
 class MainUI(QMainWindow):
 
@@ -13,6 +15,7 @@ class MainUI(QMainWindow):
         self.listWidget = QListWidget(self)
         self.textArea = QTextEdit(self)
         self.textArea.setReadOnly(True)
+        self.rasGen = newWindows.genWindow()
         self.initUI()
 
     def initUI(self):
@@ -55,6 +58,12 @@ class MainUI(QMainWindow):
         exitAction.setStatusTip('Exit Application')
         exitAction.triggered.connect(self.close)
 
+        """生成密钥"""
+        genAction = QAction(QIcon('img/exit.png'), 'Generate key', self)
+        genAction.setShortcut('Ctrl+G')
+        genAction.setStatusTip('Generate a random key')
+        genAction.triggered.connect(self.generateSerect)
+
         # 菜单栏设置
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
@@ -65,6 +74,8 @@ class MainUI(QMainWindow):
         editMenu = menubar.addMenu('&Edit')
         editMenu.addAction(cutAction)
         editMenu.addAction(copyAction)
+        cipherMenu = menubar.addMenu('&Cipher')
+        cipherMenu.addAction(genAction)
 
         # 工具栏设置
         sysToolbar = self.addToolBar('SYSTEM')
@@ -74,6 +85,8 @@ class MainUI(QMainWindow):
         editToolbar = self.addToolBar('EDIT')
         editToolbar.addAction(cutAction)
         editToolbar.addAction(copyAction)
+        cipherToolbar = self.addToolBar('CIPHER')
+        cipherToolbar.addAction(genAction)
         exitToolbar = self.addToolBar('EXIT')
         exitToolbar.addAction(exitAction)
 
@@ -88,7 +101,6 @@ class MainUI(QMainWindow):
         secretLable = QLabel("密文:", self)
 
         # 布局
-
         """全局布局"""
         main_layout = QHBoxLayout()
         """局部布局"""
@@ -201,6 +213,9 @@ class MainUI(QMainWindow):
     def doubleClick(self):
         i = self.listWidget.currentRow()
         self.tabWidget.setCurrentIndex(i)
+
+    def generateSerect(self):
+        self.rasGen.newWindowUI()
 
 
 if __name__ == '__main__':
