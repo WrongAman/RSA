@@ -10,6 +10,8 @@ class genWindow(QWidget):
         super().__init__()
         self.publicTextbox = QTextEdit(self)
         self.privateTextbox = QTextEdit(self)
+        self.publicTextbox.setReadOnly(True)
+        self.privateTextbox.setReadOnly(True)
         self.cb = QComboBox(self)
         self.genButton = QPushButton('Generate', self)
         self.public_button = QPushButton('Save', self)
@@ -49,15 +51,17 @@ class genWindow(QWidget):
         # 生成按钮
         self.genButton.move(405, 130)
         self.genButton.resize(80, 30)
+        self.genButton.clicked.connect(self.genKey)
 
         # 保存公钥
         self.public_button.move(15, 260)
         self.public_button.resize(80, 30)
-        # self.public_button.clicked.connect(self.bt_save)
+        self.public_button.clicked.connect(lambda: self.keySave('PublicKey'))
 
         # 保存私钥
         self.private_button.move(210, 260)
         self.private_button.resize(80, 30)
+        self.private_button.clicked.connect(lambda: self.keySave('PrivateKey'))
 
         # 保存方法
         # def bt_save(self):
@@ -67,3 +71,33 @@ class genWindow(QWidget):
         # f.write(my_text)
 
         self.show()
+
+    def genKey(self):
+        self.publicTextbox.setPlainText('123')
+        self.privateTextbox.setPlainText('456')
+
+    def keySave(self, fileName):
+        if fileName.startswith('PublicKey'):
+            file_txt = self.publicTextbox.toPlainText()
+        if fileName.startswith('PrivateKey'):
+            file_txt = self.privateTextbox.toPlainText()
+        if not file_txt:
+            msg = QMessageBox()
+            msg.setWindowTitle('提示')
+            msg.setText('请先生成密钥！')
+            msg.exec_()
+        else:
+            filename, filetype = QFileDialog.getSaveFileName(self,
+                                                             "保存文件",
+                                                             fileName,
+                                                             "Text Files (*.txt)")
+            if not filename:
+                return
+            with open(filename, 'w') as f:
+                f.write(file_txt)
+            msg = QMessageBox()
+            msg.setWindowTitle('成功')
+            msg.setText('生成密钥成功！')
+            msg.exec_()
+
+
