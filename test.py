@@ -15,7 +15,6 @@ class MainUI(QMainWindow):
         self.listWidget = QListWidget(self)
         self.textArea = QTextEdit(self)
         self.textArea.setReadOnly(True)
-        self.rasGen = newWindows.genWindow()
         self.initUI()
 
     def initUI(self):
@@ -26,31 +25,31 @@ class MainUI(QMainWindow):
         newAction = QAction(QIcon('img/new.png'), 'New', self)
         newAction.setShortcut('Ctrl+N')
         newAction.setStatusTip('New File')
-        newAction.triggered.connect(self.new_file)
+        newAction.triggered.connect(new_file)
 
         """打开文本文件"""
         openAction = QAction(QIcon('img/open.png'), 'Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.setStatusTip('Open File')
-        openAction.triggered.connect(self.slot_btn_chooseFile)
+        openAction.triggered.connect(open_chooseFile)
 
         """保存文本文件"""
         saveAction = QAction(QIcon('img/new.png'), 'Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.setStatusTip('Save File')
-        saveAction.triggered.connect(self.saveFile)
+        saveAction.triggered.connect(saveFile)
 
         """剪切"""
         cutAction = QAction(QIcon('img/new.png'), 'Cut', self)
         cutAction.setShortcut('Ctrl+X')
         cutAction.setStatusTip('Cut File')
-        cutAction.triggered.connect(self.saveFile)
+        cutAction.triggered.connect(saveFile)
 
         """复制"""
         copyAction = QAction(QIcon('img/new.png'), 'Copy', self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.setStatusTip('Copy File')
-        copyAction.triggered.connect(self.saveFile)
+        copyAction.triggered.connect(saveFile)
 
         """退出程序"""
         exitAction = QAction(QIcon('img/exit.png'), 'Exit', self)
@@ -62,7 +61,7 @@ class MainUI(QMainWindow):
         genAction = QAction(QIcon('img/exit.png'), 'Generate key', self)
         genAction.setShortcut('Ctrl+G')
         genAction.setStatusTip('Generate a random key')
-        genAction.triggered.connect(self.generateSerect)
+        genAction.triggered.connect(generateKey)
 
         # 菜单栏设置
         menubar = self.menuBar()
@@ -96,15 +95,18 @@ class MainUI(QMainWindow):
         status.showMessage("Ready", 5000)
 
         # 控件设置
-        self.listWidget.doubleClicked.connect(self.doubleClick)
-        self.tabWidget.tabCloseRequested.connect(self.closeTab)
+        self.listWidget.doubleClicked.connect(doubleClick)
+        self.tabWidget.tabCloseRequested.connect(closeTab)
         secretLable = QLabel("密文:", self)
 
         # 布局
+
         """全局布局"""
         main_layout = QHBoxLayout()
+
         """局部布局"""
         right_layout = QVBoxLayout()
+
         """设置局部布局"""
         right_layout.addWidget(self.tabWidget)
         right_layout.addWidget(secretLable)
@@ -113,6 +115,7 @@ class MainUI(QMainWindow):
         right_layout.setStretch(2, 1)
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
+
         """设置全局布局"""
         main_layout.addWidget(self.listWidget)
         main_layout.addWidget(right_widget)
@@ -135,7 +138,7 @@ class MainUI(QMainWindow):
                                      QMessageBox.No, QMessageBox.No)
 
         if reply == QMessageBox.Yes:
-            event.accept()
+            exit()
         else:
             event.ignore()
 
@@ -147,75 +150,89 @@ class MainUI(QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def slot_btn_chooseFile(self):
-        fileName_choose, fileType = QFileDialog.getOpenFileName(self,
-                                                                "选取文件",  # 对话框标题
-                                                                "C:/",  # 起始路径
-                                                                "Text Files (*.txt)")  # 设置文件扩展名过滤
 
-        if fileName_choose:
-            for i in range(self.tabWidget.count()):
-                textEdit = self.tabWidget.widget(i)
-                if textEdit.fileName == fileName_choose:
-                    self.tabWidget.setCurrentWidget(textEdit)
-                    break
+# Tab跳转至被双击的list元素
+def doubleClick():
+    i = ex.listWidget.currentRow()
+    ex.tabWidget.setCurrentIndex(i)
+
+
+# 关闭文件
+def closeTab(self):
+    i = self.tabWidget.currentIndex()
+    Edit.sub()
+    self.tabWidget.removeTab(i)
+    self.listWidget.takeItem(i)
+
+
+# 新建txt文件
+def new_file():
+    textEdit = Edit.Editor()
+    ex.tabWidget.addTab(textEdit, textEdit.fileName)
+    ex.tabWidget.setTabsClosable(True)
+    ex.tabWidget.setCurrentWidget(textEdit)
+    ex.listWidget.addItem(textEdit.fileName)
+
+
+# 打开TXT文件
+def open_chooseFile():
+    fileName_choose, fileType = QFileDialog.getOpenFileName(ex,
+                                                            "选取文件",  # 对话框标题
+                                                            "C:/",  # 起始路径
+                                                            "Text Files (*.txt)")  # 设置文件扩展名过滤
+
+    if fileName_choose:
+        for i in range(ex.tabWidget.count()):  # 判断选择的文件是否已经被打开
+            textEdit = ex.tabWidget.widget(i)
+            if textEdit.fileName == fileName_choose:
+                ex.tabWidget.setCurrentWidget(textEdit)
+                break
             else:
-                self.loadFile(fileName_choose)
+                ex.loadFile(fileName_choose)
 
-    def loadFile(self, fileName):
-        textEdit = Edit.Editor(fileName)
-        try:
-            textEdit.load()
-        except EnvironmentError as e:
-            QMessageBox.warning(self,
-                                "Tabbed Text Editor -- Load Error",
-                                "Failed to load {0}: {1}".format(fileName, e))
-            textEdit.close()
-            del textEdit
-        else:
-            self.tabWidget.addTab(textEdit, textEdit.fileName)
-            self.tabWidget.setTabsClosable(True)
-            self.tabWidget.setCurrentWidget(textEdit)
-            self.listWidget.addItem(textEdit.fileName)
 
-    def new_file(self):
-        textEdit = Edit.Editor()
-        self.tabWidget.addTab(textEdit, textEdit.fileName)
-        self.tabWidget.setTabsClosable(True)
-        self.tabWidget.setCurrentWidget(textEdit)
-        self.listWidget.addItem(textEdit.fileName)
+# 将打开的TXT内容写入text
+def loadFile(fileName):
+    textEdit = Edit.Editor(fileName)
+    try:
+        textEdit.load()
+    except EnvironmentError as e:
+        QMessageBox.warning(ex,
+                            "Tabbed Text Editor -- Load Error",
+                            "Failed to load {0}: {1}".format(fileName, e))
+        textEdit.close()
+        del textEdit
+    else:
+        ex.tabWidget.addTab(textEdit, textEdit.fileName)
+        ex.tabWidget.setTabsClosable(True)
+        ex.tabWidget.setCurrentWidget(textEdit)
+        ex.listWidget.addItem(textEdit.fileName)
 
-    def closeTab(self):
-        i = self.tabWidget.currentIndex()
-        Edit.sub()
-        self.tabWidget.removeTab(i)
-        self.listWidget.takeItem(i)
 
-    def saveFile(self):
-        i = self.tabWidget.currentIndex()
-        if i == -1:
+# 保存TXT文件
+def saveFile():
+    i = ex.tabWidget.currentIndex()
+    if i == -1:
+        msg = QMessageBox()
+        msg.setWindowTitle('提示')
+        msg.setText('请选择一个文件进行保存')
+        msg.exec_()
+    else:
+        textEdit = ex.tabWidget.currentWidget()
+        listEdit = ex.listWidget.item(ex.tabWidget.currentIndex())
+        if textEdit.save():
+            Edit.sub()
+            ex.tabWidget.setTabText(ex.tabWidget.currentIndex(), textEdit.fileName)
+            listEdit.setText(textEdit.fileName)
             msg = QMessageBox()
-            msg.setWindowTitle('提示')
-            msg.setText('请选择一个文件进行保存')
+            msg.setWindowTitle('成功')
+            msg.setText('保存成功！')
             msg.exec_()
-        else:
-            textEdit = self.tabWidget.currentWidget()
-            listEdit = self.listWidget.item(self.tabWidget.currentIndex())
-            if textEdit.save():
-                Edit.sub()
-                self.tabWidget.setTabText(self.tabWidget.currentIndex(), textEdit.fileName)
-                listEdit.setText(textEdit.fileName)
-                msg = QMessageBox()
-                msg.setWindowTitle('成功')
-                msg.setText('保存成功！')
-                msg.exec_()
 
-    def doubleClick(self):
-        i = self.listWidget.currentRow()
-        self.tabWidget.setCurrentIndex(i)
 
-    def generateSerect(self):
-        self.rasGen.newWindowUI()
+# 生成密钥
+def generateKey():
+    rasGen = newWindows.genWindow()
 
 
 if __name__ == '__main__':
