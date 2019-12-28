@@ -16,6 +16,9 @@ class Editor(QTextEdit):
                 Editor.NextId)
             Editor.NextId += 1
 
+    def loadText(self):
+        return self.toPlainText()
+
     def load(self):
         with open(self.fileName, 'r') as f:
             file_txt = f.read()
