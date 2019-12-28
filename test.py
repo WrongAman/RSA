@@ -1,6 +1,7 @@
 import sys
 import Edit
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction, QMessageBox, QDesktopWidget, QFileDialog, QApplication, QMainWindow, QTabWidget, \
     QListWidget, QHBoxLayout, QWidget, QTextEdit, QVBoxLayout, QLabel
 
@@ -63,6 +64,12 @@ class MainUI(QMainWindow):
         genAction.setStatusTip('Generate a random key')
         genAction.triggered.connect(generateKey)
 
+        """加密"""
+        encodeAction = QAction(QIcon('img/Encode-File'), 'Encode', self)
+        encodeAction.setShortcut('Ctrl+G')
+        encodeAction.setStatusTip('Encode')
+        encodeAction.triggered.connect(Encode)
+
         # 菜单栏设置
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
@@ -75,6 +82,7 @@ class MainUI(QMainWindow):
         editMenu.addAction(copyAction)
         cipherMenu = menubar.addMenu('&Cipher')
         cipherMenu.addAction(genAction)
+        cipherMenu.addAction(encodeAction)
 
         # 工具栏设置
         sysToolbar = self.addToolBar('SYSTEM')
@@ -86,6 +94,7 @@ class MainUI(QMainWindow):
         editToolbar.addAction(copyAction)
         cipherToolbar = self.addToolBar('CIPHER')
         cipherToolbar.addAction(genAction)
+        cipherToolbar.addAction(encodeAction)
         exitToolbar = self.addToolBar('EXIT')
         exitToolbar.addAction(exitAction)
 
@@ -159,10 +168,10 @@ def doubleClick():
 
 # 关闭文件
 def closeTab(self):
-    i = self.tabWidget.currentIndex()
+    i = ex.tabWidget.currentIndex()
     Edit.sub()
-    self.tabWidget.removeTab(i)
-    self.listWidget.takeItem(i)
+    ex.tabWidget.removeTab(i)
+    ex.listWidget.takeItem(i)
 
 
 # 新建txt文件
@@ -187,8 +196,8 @@ def open_chooseFile():
             if textEdit.fileName == fileName_choose:
                 ex.tabWidget.setCurrentWidget(textEdit)
                 break
-            else:
-                ex.loadFile(fileName_choose)
+        else:    
+            loadFile(fileName_choose)
 
 
 # 将打开的TXT内容写入text
@@ -232,7 +241,25 @@ def saveFile():
 
 # 生成密钥
 def generateKey():
-    rasGen = newWindows.genWindow()
+    ex.rasGen = newWindows.genWindow()
+
+# 加密
+def Encode():
+    if ex.tabWidget.count() == 0:
+        msg = QMessageBox()
+        msg.setWindowTitle('!!!!!!')
+        msg.setText('NO FILE!')
+        msg.exec_()                   
+    elif not (ex.tabWidget.currentWidget().loadText()):
+        msg = QMessageBox()
+        msg.setWindowTitle('!!!!!!')
+        msg.setText('NO INPUT!')
+        msg.exec_()
+    else:
+        ex.rsaEncode = newWindows.cipherWindow(ex.tabWidget.currentWidget().loadText())
+        
+    
+
 
 
 if __name__ == '__main__':
