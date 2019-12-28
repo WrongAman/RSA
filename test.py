@@ -20,6 +20,7 @@ class MainUI(QMainWindow):
 
     def initUI(self):
 
+
         # 定义事件相关
 
         """新建文本文件"""
@@ -158,6 +159,9 @@ class MainUI(QMainWindow):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
+    
+
+
 
 
 # Tab跳转至被双击的list元素
