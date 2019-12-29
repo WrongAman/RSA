@@ -1,9 +1,8 @@
 import sys
 import Edit
 from PyQt5.QtGui import QIcon
-from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QAction, QMessageBox, QDesktopWidget, QFileDialog, QApplication, QMainWindow, QTabWidget, \
-    QListWidget, QHBoxLayout, QWidget, QTextEdit, QVBoxLayout, QLabel
+    QListWidget, QHBoxLayout, QWidget
 
 import newWindows
 
@@ -14,12 +13,9 @@ class MainUI(QMainWindow):
         super().__init__()
         self.tabWidget = QTabWidget(self)
         self.listWidget = QListWidget(self)
-        self.textArea = QTextEdit(self)
-        self.textArea.setReadOnly(True)
         self.initUI()
 
     def initUI(self):
-
 
         # 定义事件相关
 
@@ -36,19 +32,19 @@ class MainUI(QMainWindow):
         openAction.triggered.connect(open_chooseFile)
 
         """保存文本文件"""
-        saveAction = QAction(QIcon('img/new.png'), 'Save', self)
+        saveAction = QAction(QIcon('img/save.png'), 'Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.setStatusTip('Save File')
         saveAction.triggered.connect(saveFile)
 
         """剪切"""
-        cutAction = QAction(QIcon('img/new.png'), 'Cut', self)
+        cutAction = QAction(QIcon('img/cut.png'), 'Cut', self)
         cutAction.setShortcut('Ctrl+X')
         cutAction.setStatusTip('Cut File')
         cutAction.triggered.connect(saveFile)
 
         """复制"""
-        copyAction = QAction(QIcon('img/new.png'), 'Copy', self)
+        copyAction = QAction(QIcon('img/copy.png'), 'Copy', self)
         copyAction.setShortcut('Ctrl+C')
         copyAction.setStatusTip('Copy File')
         copyAction.triggered.connect(saveFile)
@@ -60,16 +56,22 @@ class MainUI(QMainWindow):
         exitAction.triggered.connect(self.close)
 
         """生成密钥"""
-        genAction = QAction(QIcon('img/exit.png'), 'Generate key', self)
+        genAction = QAction(QIcon('img/key.png'), 'Generate key', self)
         genAction.setShortcut('Ctrl+G')
         genAction.setStatusTip('Generate a random key')
         genAction.triggered.connect(generateKey)
 
         """加密"""
         encodeAction = QAction(QIcon('img/Encode-File'), 'Encode', self)
-        encodeAction.setShortcut('Ctrl+G')
+        encodeAction.setShortcut('Ctrl+E')
         encodeAction.setStatusTip('Encode')
         encodeAction.triggered.connect(Encode)
+
+        """解密"""
+        decodeAction = QAction(QIcon('img/Decode-File'), 'Decode', self)
+        decodeAction.setShortcut('Ctrl+D')
+        decodeAction.setStatusTip('Decode')
+        decodeAction.triggered.connect(Decode)
 
         # 菜单栏设置
         menubar = self.menuBar()
@@ -84,6 +86,7 @@ class MainUI(QMainWindow):
         cipherMenu = menubar.addMenu('&Cipher')
         cipherMenu.addAction(genAction)
         cipherMenu.addAction(encodeAction)
+        cipherMenu.addAction(decodeAction)
 
         # 工具栏设置
         sysToolbar = self.addToolBar('SYSTEM')
@@ -96,6 +99,7 @@ class MainUI(QMainWindow):
         cipherToolbar = self.addToolBar('CIPHER')
         cipherToolbar.addAction(genAction)
         cipherToolbar.addAction(encodeAction)
+        cipherToolbar.addAction(decodeAction)
         exitToolbar = self.addToolBar('EXIT')
         exitToolbar.addAction(exitAction)
 
@@ -107,28 +111,23 @@ class MainUI(QMainWindow):
         # 控件设置
         self.listWidget.doubleClicked.connect(doubleClick)
         self.tabWidget.tabCloseRequested.connect(closeTab)
-        secretLable = QLabel("密文:", self)
 
         # 布局
 
         """全局布局"""
         main_layout = QHBoxLayout()
 
-        """局部布局"""
+        """局部布局
         right_layout = QVBoxLayout()
 
-        """设置局部布局"""
+        设置局部布
         right_layout.addWidget(self.tabWidget)
-        right_layout.addWidget(secretLable)
-        right_layout.addWidget(self.textArea)
-        right_layout.setStretch(0, 2)
-        right_layout.setStretch(2, 1)
         right_widget = QWidget()
-        right_widget.setLayout(right_layout)
+        right_widget.setLayout(right_layout)"""
 
         """设置全局布局"""
         main_layout.addWidget(self.listWidget)
-        main_layout.addWidget(right_widget)
+        main_layout.addWidget(self.tabWidget)
         main_layout.setStretch(0, 1)
         main_layout.setStretch(1, 3)
         main_widget = QWidget()
@@ -159,9 +158,6 @@ class MainUI(QMainWindow):
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
-    
-
-
 
 
 # Tab跳转至被双击的list元素
@@ -200,7 +196,7 @@ def open_chooseFile():
             if textEdit.fileName == fileName_choose:
                 ex.tabWidget.setCurrentWidget(textEdit)
                 break
-        else:    
+        else:
             loadFile(fileName_choose)
 
 
@@ -247,23 +243,36 @@ def saveFile():
 def generateKey():
     ex.rasGen = newWindows.genWindow()
 
+
 # 加密
 def Encode():
     if ex.tabWidget.count() == 0:
         msg = QMessageBox()
         msg.setWindowTitle('!!!!!!')
         msg.setText('NO FILE!')
-        msg.exec_()                   
+        msg.exec_()
     elif not (ex.tabWidget.currentWidget().loadText()):
         msg = QMessageBox()
         msg.setWindowTitle('!!!!!!')
         msg.setText('NO INPUT!')
         msg.exec_()
     else:
-        ex.rsaEncode = newWindows.cipherWindow(ex.tabWidget.currentWidget().loadText())
-        
-    
+        ex.rsaEncode = newWindows.EncodeWindow(ex.tabWidget.currentWidget().loadText())
 
+
+def Decode():
+    if ex.tabWidget.count() == 0:
+        msg = QMessageBox()
+        msg.setWindowTitle('!!!!!!')
+        msg.setText('NO FILE!')
+        msg.exec_()
+    elif not (ex.tabWidget.currentWidget().loadText()):
+        msg = QMessageBox()
+        msg.setWindowTitle('!!!!!!')
+        msg.setText('NO INPUT!')
+        msg.exec_()
+    else:
+        ex.rsaDecode = newWindows.DecodeWindow(ex.tabWidget.currentWidget().loadText())
 
 
 if __name__ == '__main__':

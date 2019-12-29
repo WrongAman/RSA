@@ -1,13 +1,11 @@
-import sys
 import time
 from Crypto import Random
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_pkcs1_v1_5
-from PyQt5.QtWidgets import QFileDialog, QMainWindow, QWidget, QPushButton, QLabel, QComboBox, QMessageBox, QTextEdit,\
-QLineEdit
+from PyQt5.QtWidgets import QFileDialog, QWidget, QPushButton, QLabel, QComboBox, QMessageBox
 from PyQt5.Qt import QTextEdit
 import base64
-from PyQt5.QtCore import pyqtSignal
+
 
 class genWindow(QWidget):
 
@@ -22,7 +20,6 @@ class genWindow(QWidget):
         self.public_button = QPushButton('Save', self)
         self.private_button = QPushButton('Save', self)
         self.measure_time = ''
-        
         self.newWindowUI()
 
     def newWindowUI(self):
@@ -109,16 +106,18 @@ class genWindow(QWidget):
     def keySave(self, fileName):
         if fileName.startswith('PublicKey'):
             file_txt = self.publicTextbox.toPlainText()
-            key = self.public_pem
+            if file_txt:
+                key = self.public_pem
         if fileName.startswith('PrivateKey'):
             file_txt = self.privateTextbox.toPlainText()
-            key = self.private_pem
+            if file_txt:
+                key = self.private_pem
         if not file_txt:
             msg = QMessageBox()
             msg.setWindowTitle('提示')
             msg.setText('请先生成密钥！')
             msg.exec_()
-        else: 
+        else:
             filename, filetype = QFileDialog.getSaveFileName(self,
                                                              "保存文件",
                                                              fileName,
@@ -134,58 +133,53 @@ class genWindow(QWidget):
 
 
 class EncodeWindow(QWidget):
-    
 
-    def  __init__(self, text=''):
+    def __init__(self, text=''):
         super().__init__()
         self.text = text
         # 窗口不可缩放
         self.setFixedSize(500, 300)
         self.encodeWindowUI()
 
-
     def encodeWindowUI(self):
-        
+
         self.setWindowTitle('Encode')
-        
-        # 导入公钥窗口
+
+        # 导入公钥提示文字
         import_label = QLabel(self)
         import_label.move(35, 20)
-        import_label.resize(175,20)
         import_label.setText('Please import the public key:')
-        
+
         # 显示路径
         self.import_address = QLabel(self)
-        self.import_address.move(35,55)
-        self.import_address.resize(400,20)
+        self.import_address.move(35, 55)
+        self.import_address.resize(400, 20)
 
         # 导入公钥
         import_button = QPushButton('import', self)
-        import_button.move(235, 20)
-        import_button.resize(45,20)
+        import_button.move(400, 20)
+        import_button.resize(60, 30)
         import_button.clicked.connect(self.uploadKey)
-        
+
         # 加密
         encode_button = QPushButton('encode', self)
-        encode_button.move(300,20)
-        encode_button.resize(45,20)
+        encode_button.move(400, 50)
+        encode_button.resize(60, 30)
         encode_button.clicked.connect(self.rsaEncode)
 
         # 保存密文
         save_ciphertext = QPushButton('save', self)
-        save_ciphertext.move(365,20)
-        save_ciphertext.resize(45,20)
+        save_ciphertext.move(400, 80)
+        save_ciphertext.resize(60, 30)
         save_ciphertext.clicked.connect(lambda: self.cipherSave('CipherText'))
 
-        
-         # 密文文本框
+        # 密文文本框
         cipher_label = QLabel(self)
-        cipher_label.move(35,90)
-        cipher_label.resize(70,20)
+        cipher_label.move(35, 90)
         cipher_label.setText('Ciphertext: ')
         self.cipherTextBox = QTextEdit(self)
-        self.cipherTextBox.move(35,125)
-        self.cipherTextBox.resize(430,145)
+        self.cipherTextBox.move(35, 125)
+        self.cipherTextBox.resize(430, 145)
         self.cipherTextBox.setReadOnly(True)
 
         self.show()
@@ -193,51 +187,56 @@ class EncodeWindow(QWidget):
     # 导入PublicKey.pem文件    
     def uploadKey(self):
         file_name, filetype = QFileDialog.getOpenFileName(self,
-                                                             "打开文件",
-                                                             "C://",
-                                                              "Text Files (*.pem)")
+                                                          "打开文件",
+                                                          "C://",
+                                                          "Text Files (*.pem)")
         self.import_address.setText(file_name)
         if file_name == "":
-            return 
+            return
         with open(file_name, 'r') as f:
             self.key = f.read()
             self.rsakey = RSA.importKey(self.key)
             self.cipher = Cipher_pkcs1_v1_5.new(self.rsakey)
-    
+
     # 加密方法
     def rsaEncode(self):
-        encode_startTime = time.time()
-        
-        # 明文加密过程
-        message = self.text
-        self.cipher_text = base64.b64encode(self.cipher.encrypt(message.encode(encoding="utf-8")))
-        
-        encode_endTime = time.time()
-        # 获取时间戳
-        self.measure_encode_time = str(round((encode_endTime - encode_startTime), 6))
-        
-        # 密文文本框显示密文内容
-        ciphertext = self.cipher_text.decode()
-        self.cipherTextBox.setPlainText(ciphertext)
-        print(ciphertext)
-        
-        # 弹出提示窗
-        msg = QMessageBox()
-        msg.setWindowTitle('成功')
-        msg.setText('加密成功！\n用时' + self.measure_encode_time + ' s')
-        msg.exec_()
+        if not self.import_address.text():
+            msg = QMessageBox()
+            msg.setWindowTitle('提示')
+            msg.setText('请先导入公钥')
+            msg.exec_()
+        else:
+            encode_startTime = time.time()
+
+            # 明文加密过程
+            message = self.text
+            self.cipher_text = base64.b64encode(self.cipher.encrypt(message.encode(encoding="utf-8")))
+
+            encode_endTime = time.time()
+            # 获取时间戳
+            self.measure_encode_time = str(round((encode_endTime - encode_startTime), 6))
+
+            # 密文文本框显示密文内容
+            ciphertext = self.cipher_text.decode()
+            self.cipherTextBox.setPlainText(ciphertext)
+            print(ciphertext)
+
+            # 弹出提示窗
+            msg = QMessageBox()
+            msg.setWindowTitle('成功')
+            msg.setText('加密成功！\n用时' + self.measure_encode_time + ' s')
+            msg.exec_()
 
     # 保存密文
     def cipherSave(self, fileName):
         if fileName.startswith('CipherText'):
             file_txt = self.cipherTextBox.toPlainText()
-            print(file_txt)
         if not file_txt:
             msg = QMessageBox()
             msg.setWindowTitle('提示')
             msg.setText('请先加密！')
             msg.exec_()
-        else: 
+        else:
             filename, filetype = QFileDialog.getSaveFileName(self,
                                                              "保存文件",
                                                              fileName,
@@ -254,92 +253,117 @@ class EncodeWindow(QWidget):
 
 class DecodeWindow(QWidget):
 
-    def  __init__(self, text=''):
+    def __init__(self, text=''):
         self.text = text
         super().__init__()
         # 窗口不可缩放
         self.setFixedSize(500, 300)
         self.decodeWindowUI()
 
-
     def decodeWindowUI(self):
         self.setWindowTitle('Decode')
-        
-        # 导入公钥窗口
+
+        # 导入私钥提示文字
         import_label = QLabel(self)
         import_label.move(35, 20)
-        import_label.resize(175,20)
         import_label.setText('Please import the private key:')
-        
+
         # 显示路径
         self.import_address = QLabel(self)
-        self.import_address.move(35,55)
-        self.import_address.resize(400,20)
+        self.import_address.move(35, 55)
+        self.import_address.resize(400, 20)
 
         # 导入公钥
         import_button = QPushButton('import', self)
-        import_button.move(235, 20)
-        import_button.resize(45,20)
+        import_button.move(400, 20)
+        import_button.resize(60, 30)
         import_button.clicked.connect(self.uploadKey)
-        
+
         # 解密
         encode_button = QPushButton('decode', self)
-        encode_button.move(300,20)
-        encode_button.resize(45,20)
+        encode_button.move(400, 50)
+        encode_button.resize(60, 30)
         encode_button.clicked.connect(self.rsaDecode)
 
         # 保存明文
         save_ciphertext = QPushButton('save', self)
-        save_ciphertext.move(365,20)
-        save_ciphertext.resize(45,20)
-        # save_ciphertext.clicked.connect(lambda: self.cipherSave('CipherText'))
+        save_ciphertext.move(400, 80)
+        save_ciphertext.resize(60, 30)
+        save_ciphertext.clicked.connect(lambda: self.cipherSave('PlainText'))
 
-        
-         # 密文文本框
+        # 密文文本框
         plain_label = QLabel(self)
-        plain_label.move(35,90)
-        plain_label.resize(70,20)
+        plain_label.move(35, 90)
+        plain_label.resize(70, 20)
         plain_label.setText('Plaintext: ')
         self.plainTextBox = QTextEdit(self)
-        self.plainTextBox.move(35,125)
-        self.plainTextBox.resize(430,145)
+        self.plainTextBox.move(35, 125)
+        self.plainTextBox.resize(430, 145)
         self.plainTextBox.setReadOnly(True)
 
         self.show()
 
         # 导入PrivateKey.pem文件    
+
     def uploadKey(self):
         file_name, filetype = QFileDialog.getOpenFileName(self,
-                                                             "打开文件",
-                                                             "C://",
-                                                              "Text Files (*.pem)")
+                                                          "打开文件",
+                                                          "C://",
+                                                          "Text Files (*.pem)")
         self.import_address.setText(file_name)
         if file_name == "":
-            return 
+            return
         with open(file_name, 'r') as f:
             self.key = f.read()
             self.rsakey = RSA.importKey(self.key)
             self.cipher = Cipher_pkcs1_v1_5.new(self.rsakey)
 
     def rsaDecode(self):
-        decode_startTime = time.time()
-        
-        # 明文加密过程
-        cipher_text = self.text
-        self.plain_text = self.cipher.decrypt(base64.b64decode(cipher_text), "ERROR")
-        
-        decode_endTime = time.time()
-        # 获取时间戳
-        self.measure_encode_time = str(round((decode_endTime - decode_startTime), 6))
-        
-        # 密文文本框显示密文内容
-        plaintext = self.plain_text.decode()
-        self.plainTextBox.setPlainText(plaintext)
-        print(plaintext)
-        
-        # 弹出提示窗
-        msg = QMessageBox()
-        msg.setWindowTitle('成功')
-        msg.setText('加密成功！\n用时' + self.measure_encode_time + ' s')
-        msg.exec_()
+        if not self.import_address.text():
+            msg = QMessageBox()
+            msg.setWindowTitle('提示')
+            msg.setText('请先导入私钥')
+            msg.exec_()
+        else:
+            decode_startTime = time.time()
 
+            # 明文解密过程
+            cipher_text = self.text
+            self.plain_text = self.cipher.decrypt(base64.b64decode(cipher_text))
+            decode_endTime = time.time()
+
+            # 获取时间戳
+            self.measure_encode_time = str(round((decode_endTime - decode_startTime), 6))
+
+            # 密文文本框显示密文内容
+            plaintext = self.plain_text.decode()
+            self.plainTextBox.setPlainText(plaintext)
+            print(plaintext)
+
+            # 弹出提示窗
+            msg = QMessageBox()
+            msg.setWindowTitle('成功')
+            msg.setText('解密成功！\n用时' + self.measure_encode_time + ' s')
+            msg.exec_()
+
+    def cipherSave(self, fileName):
+        if fileName.startswith('PlainText'):
+            file_txt = self.plainTextBox.toPlainText()
+        if not file_txt:
+            msg = QMessageBox()
+            msg.setWindowTitle('提示')
+            msg.setText('请先解密！')
+            msg.exec_()
+        else:
+            filename, filetype = QFileDialog.getSaveFileName(self,
+                                                             "保存文件",
+                                                             fileName,
+                                                             "Text Files (*.txt)")
+            if not filename:
+                return
+            with open(filename, 'w') as f:
+                f.write(file_txt)
+            msg = QMessageBox()
+            msg.setWindowTitle('成功')
+            msg.setText('保存成功！')
+            msg.exec_()
