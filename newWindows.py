@@ -329,7 +329,7 @@ class DecodeWindow(QWidget):
 
             # 明文解密过程
             cipher_text = self.text
-            self.plain_text = self.cipher.decrypt(base64.b64decode(cipher_text))
+            self.plain_text = self.cipher.decrypt(base64.b64decode(cipher_text),"ERROR")
             decode_endTime = time.time()
 
             # 获取时间戳
