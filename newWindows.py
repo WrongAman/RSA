@@ -291,7 +291,7 @@ class DecodeWindow(QWidget):
         save_ciphertext.resize(60, 30)
         save_ciphertext.clicked.connect(lambda: self.cipherSave('PlainText'))
 
-        # 密文文本框
+        # 明文文本框
         plain_label = QLabel(self)
         plain_label.move(35, 90)
         plain_label.resize(70, 20)
@@ -346,6 +346,7 @@ class DecodeWindow(QWidget):
             msg.setText('解密成功！\n用时' + self.measure_encode_time + ' s')
             msg.exec_()
 
+    # 保存明文
     def cipherSave(self, fileName):
         if fileName.startswith('PlainText'):
             file_txt = self.plainTextBox.toPlainText()
