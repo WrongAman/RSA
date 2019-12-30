@@ -20,7 +20,7 @@ class Editor(QTextEdit):
         return self.toPlainText()
 
     def load(self):
-        with open(self.fileName, 'r', encoding='UTF-8') as f:
+        with open(self.fileName, 'r') as f:
             file_txt = f.read()
             self.setPlainText(file_txt)
 
